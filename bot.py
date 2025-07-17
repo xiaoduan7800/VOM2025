@@ -183,20 +183,18 @@ async def report_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     TOKEN = os.getenv("BOT_TOKEN")
     if not TOKEN:
-        raise Exception("Missing BOT_TOKEN in environment variables")
+        raise Exception("Missing BOT_TOKEN")
 
-    app = Application.builder().token(TOKEN).build()
+    application = Application.builder().token(TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("rules", rules))
-    app.add_handler(CommandHandler("admin", admin_list))
-    app.add_handler(CommandHandler("ban", ban_user))
-    app.add_handler(CommandHandler("report", report_user))
-    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), filter_links))
+    # Handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("rules", rules))
+    application.add_handler(CommandHandler("admin", admin_list))
+    application.add_handler(CommandHandler("ban", ban_user))
+    application.add_handler(CommandHandler("report", report_user))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), filter_links))
 
     logger.info("🤖 Bot is starting...")
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
+    application.run_polling()
