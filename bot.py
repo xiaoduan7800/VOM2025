@@ -85,7 +85,7 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.delete()
             warning_msg = await context.bot.send_message(
                 chat_id=update.message.chat.id,
-                text=f⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
+                text=f"⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
                 parse_mode=ParseMode.HTML
             )
             await warning_msg.delete(delay=10)
