@@ -50,8 +50,24 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"မင်္ဂလာပါ {name}\n"
                 f"Username - {username} ({user_id})\n\n"
                 f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
-                f"... [message truncated for brevity] ..."
+                f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
+                f"ကျွန်တော်ကတော့ စကစကိုတော်လှန်နေတဲ့တော်လှန်‌ရေးမှာပါဝင်နေတဲ့ တော်လှန်စက်ရုပ်ဖြစ်ပါတယ်။\n"
+                f"ကျွန်တော်တို့ Voice Of Mandalay (VOM) Group အတွင်းဝင်ရောက်လာမည်ဆိုပါက "
+                f"မိဘပြည်သူများ၏ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြုရန် လိုအပ်ပါသည်။\n\n"
+                f"၁။ Profile တွင် မိမိ၏ပုံအစစ်မှန်ကို မတင်ထားရန်။\n"
+                f"၂။ ဖုန်းနံပါတ်ကို ဖျောက်ထားရန်။\n"
+                f"၃။ မိမိ၏တည်နေရာကို public chat သို့မဟုတ် DM တွင် မဖော်ပြရန်။"
+                f"၄။ သတင်းပေးပို့လိုပါက admin ထံသို့ DM မှတစ်ဆင့် ဆက်သွယ်သတင်းပေးရန်။\n\n"
+                f"မိဘပြည်သူများအနေဖြင့် -\n"
+                f"• စကစ၏ ယုတ်မာရက်စက်မှုများ\n"
+                f"• ဧည့်စားရင်းစစ်သတင်းများ\n"
+                f"• စကစ၏ လှုပ်ရှားမှုသတင်းများ\n"
+                f"• စစ်မှုထမ်းရန်ဖမ်းဆီးခေါ်ဆောင်မှုများ\n"
+                f"တို့ကို သတင်းပေးချင်ပါက ⤵️\n"
+                f"/admin ကိုနှိပ်ပြီး သတင်းပေးပါ။"
             )
+
+      
             await update.message.reply_text(welcome_message)
 
     except Exception as e:
@@ -69,7 +85,7 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.delete()
             warning_msg = await context.bot.send_message(
                 chat_id=update.message.chat.id,
-                text=f"⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
+                text=f⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
                 parse_mode=ParseMode.HTML
             )
             await warning_msg.delete(delay=10)
@@ -78,9 +94,15 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rules_text = """📜 <b>အုပ်စုစည်းမျဉ်းများ</b>:
-1. လောင်းကစားကြော်ငြာများ မဖော်ပြရ။
-2. တော်လှန်ရေးအကြောင်းအရာများ မျှဝေ OK။
-..."""
+1. လောင်းကစားကြော်ငြာများ၊ refer မပြုလုပ်ပါနဲ့။
+2. တော်လှန်ရေးနှင့်ပတ်သတ်သောအကြောင်းအရာများကို လွတ်လပ်စွာ ဆွေးနွေးနိုင်ပါသည်။
+3. မိဘပြည်သူများကို စိတ်အနှောက်အယှက်ဖြစ်စေသော message များ မပို့ရ။
+4. တော်လှန်ပြည်သူအချင်းချင်း စိတ်ဝမ်းကွဲစေနိုင်သော စကားများ မပြောရ။
+
+<b>မှတ်ချက်</b>:
+အခြားစည်းကမ်းချက်များ လိုအပ်လာပါက admin များမှ ထပ်မံ သတ်မှတ်သွားပါမည်။
+"""
+
     await update.message.reply_text(rules_text, parse_mode=ParseMode.HTML)
 
 async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -88,7 +110,7 @@ async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = (
         "🔷 <b>Admin များ:</b>\n\n" +
         "\n".join([f"• {admin}" for admin in predefined_admins]) +
-        "\n\nသတင်းပေးရန် admin DM ထဲသို့ ဆက်သွယ်ပါ။"
+        "\n\nသတင်းပေးရန် ဖော်ပြထားသော admin DM ထံသို့ ဆက်သွယ်ပါ။"
     )
     await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
