@@ -47,19 +47,32 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             username = f"@{member.username}" if member.username else "(no username)"
             user_id = member.id
 
-            welcome_message = (
+            # Split welcome message into two parts
+            welcome_part1 = (
                 f"မင်္ဂလာပါ {name}\n"
                 f"Username - {username} ({user_id})\n\n"
-                f"Voice Of Mandalay တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
+                f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
                 f"ကျွန်တော်ကတော့ စကစကိုတော်လှန်နေတဲ့တော်လှန်‌ရေးမှာပါဝင်နေတဲ့ တော်လှန်စက်ရုပ်ဖြစ်ပါတယ်။\n"
-                f"ကျွန်တော်တို့ Voice Of Mandalay Groupအတွင်းသို့ ဝင်ရောက်ထားမည်ဆိုပါက မိဘပြည်သူများ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြုရန်လိုအပ်ပါသည်။ \n"
-                f"၁။ Profile တွင်မိမိ၏ပုံ အစစ်မှန်ကို မတင်ထားရန်၊\n"   
-                f"၂။ ဖုန်းနံပါတ်ကိုဖျောက်ထားရန်၊\n"
-                f"၃။ မိမိ၏တည်နေရာကို public chat(သို့)DM တွင်ထုတ်ဖော်မပြောမိစေရန်၊\n"
-                f"၄။သတင်းပေးပို့မည် ဆိုပါက adminထံသို့ DMမှဆက်သွယ်သတင်းပေးပို့ရန်တို့ဖြစ်ပါသည်။ \n"             
-                f"  adminထံသို့သတင်းပေးရန် /admin ကိုနှိပ်ပါ။"
+                f"ကျွန်တော်တို့ Voice Of Mandalay (VOM) Group အတွင်းဝင်ရောက်လာမည်ဆိုပါက "
+                f"မိဘပြည်သူများ၏ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြုရန် လိုအပ်ပါသည်။\n\n"
+                f"၁။ Profile တွင် မိမိ၏ပုံအစစ်မှန်ကို မတင်ထားရန်။\n"
+                f"၂။ ဖုန်းနံပါတ်ကို ဖျောက်ထားရန်။\n"
+                f"၃။ မိမိ၏တည်နေရာကို public chat သို့မဟုတ် DM တွင် မဖော်ပြရန်။"
             )
-            await update.message.reply_text(welcome_message)
+
+            welcome_part2 = (
+                f"၄။ သတင်းပေးပို့လိုပါက admin ထံသို့ DM မှတစ်ဆင့် ဆက်သွယ်သတင်းပေးရန်။\n\n"
+                f"မိဘပြည်သူများအနေဖြင့် -\n"
+                f"• စကစ၏ ယုတ်မာရက်စက်မှုများ\n"
+                f"• ဧည့်စားရင်းစစ်သတင်းများ\n"
+                f"• စကစ၏ လှုပ်ရှားမှုသတင်းများ\n"
+                f"• စစ်မှုထမ်းရန်ဖမ်းဆီးခေါ်ဆောင်မှုများ\n"
+                f"တို့ကို သတင်းပေးချင်ပါက ⤵️\n"
+                f"/admin ကိုနှိပ်ပြီး သတင်းပေးပါ။"
+            )
+
+            await update.message.reply_text(welcome_part1)
+            await update.message.reply_text(welcome_part2)
 
     except Exception as e:
         logger.error(f"Welcome error: {e}")
@@ -93,11 +106,13 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rules_text = """
 📜 <b>အုပ်စုစည်းမျဉ်းများ</b>:
-1. လောင်းကစားကြော်ငြာများ၊ refer မပြုလုပ်ရ။
-2. တော်လှန်ရေးနှင့်ပတ်သတ်သောအကြောင်းအရာများကို လွတ်လပ်စွာဆွေးနွေးနိုင်ပါသည်
-3.အဖွဲ့ဝင် မိဘပြည်သူများ စိတ်အနှောက်အယှက်ဖြစ်စေသည် message များမပို့ရ 
-4.တော်လှန်ပြည်သူအချင်းချင်း စိတ်ဝမ်းကွဲစေနိုင်သော စကားလုံးများမပြော ဆိုရ
-***အခြားစည်းကမ်းချက်များ လိုအပ်လာပါက admin များမှ ထပ်မံဖြည့်သွင်းသတ်မှတ်သွားပါမည်။***
+1. လောင်းကစားကြော်ငြာများ၊ refer မပြုလုပ်ပါနဲ့။
+2. တော်လှန်ရေးနှင့်ပတ်သတ်သောအကြောင်းအရာများကို လွတ်လပ်စွာ ဆွေးနွေးနိုင်ပါသည်။
+3. မိဘပြည်သူများကို စိတ်အနှောက်အယှက်ဖြစ်စေသော message များ မပို့ရ။
+4. တော်လှန်ပြည်သူအချင်းချင်း စိတ်ဝမ်းကွဲစေနိုင်သော စကားများ မပြောရ။
+
+<b>မှတ်ချက်</b>:
+အခြားစည်းကမ်းချက်များ လိုအပ်လာပါက admin များမှ ထပ်မံ သတ်မှတ်သွားပါမည်။
 """
     await update.message.reply_text(rules_text, parse_mode=ParseMode.HTML)
 
@@ -111,7 +126,7 @@ async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = (
             "🔷 <b>Admin များ:</b>\n\n" +
             "\n".join([f"• {admin}" for admin in predefined_admins]) +
-            "\n\nသတင်းပေးပို့ရန် admin ၏ DM သို့ ဆက်သွယ်ပါ။"
+            "\n\nသတင်းပေးချင်ပါက မည်သူမဆို admin ၏ DM သို့ ဆက်သွယ်ပါ။"
         )
         await update.message.reply_text(message, parse_mode=ParseMode.HTML)
     except Exception as e:
@@ -134,13 +149,13 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"🚫 User {user_id} ကို ban လုပ်ပြီးပါပြီ။\nအကြောင်းအရင်း: {reason}")
     except Exception as e:
         logger.error(f"Ban error: {e}")
-        await update.message.reply_text("❌ Ban လုပ်ရာတွင် အမှားတစ်ခုဖြစ်နေပါသည်။")
+        await update.message.reply_text("❌ Ban လုပ်ရာတွင် အမှားတစ်ခု ဖြစ်နေပါတယ်။")
 
 async def report_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         reported_msg = update.message.reply_to_message
         if not reported_msg:
-            await update.message.reply_text("⚠️ Reply ပြန်ပြီး /report သုံးပါ။")
+            await update.message.reply_text("⚠️ ကျေးဇူးပြု၍ ပြသလိုသော message ကို reply ပြန်ပြီး /report ကိုသုံးပါ။")
             return
 
         reporter = update.effective_user
@@ -188,8 +203,16 @@ async def main():
     await application.run_polling()
 
 if __name__ == "__main__":
+    import asyncio
+
     try:
-        asyncio.run(main())
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            logger.info("⏳ Detected existing event loop. Starting bot with create_task().")
+            loop.create_task(main())
+        else:
+            logger.info("🚀 Starting bot with new event loop.")
+            loop.run_until_complete(main())
     except KeyboardInterrupt:
         logger.info("🛑 Bot stopped by user")
     except Exception as e:
