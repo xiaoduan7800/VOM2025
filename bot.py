@@ -47,24 +47,37 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             username = f"@{member.username}" if member.username else "(no username)"
             user_id = member.id
 
-            welcome_message = (
+            # အပိုင်း ၁
+            welcome_part1 = (
                 f"မင်္ဂလာပါ {name}\n"
                 f"Username - {username} ({user_id})\n\n"
                 f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
                 f"ကျွန်တော်ကတော့ စကစကိုတော်လှန်နေတဲ့တော်လှန်‌ရေးမှာပါဝင်နေတဲ့ တော်လှန်စက်ရုပ်ဖြစ်ပါတယ်။\n"
-                f"ကျွန်တော်တို့ Voice Of Mandalay (VOM)Groupအတွင်းသို့ ဝင်ရောက်ထားမည်ဆိုပါက မိဘပြည်သူများ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြု ရန်လိုအပ်ပါသည်။ \n"
+                f"ကျွန်တော်တို့ Voice Of Mandalay (VOM)Groupအတွင်းသို့ ဝင်ရောက်ထားမည်ဆိုပါက မိဘပြည်သူများ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြု ရန်လိုအပ်ပါသည်။"
+            )
+            await update.message.reply_text(welcome_part1)
+            await asyncio.sleep(1)  # 1 စက္ကန့်ခြားပါ
+
+            # အပိုင်း ၂
+            welcome_part2 = (
                 f"၁။ Profile တွင်မိမိ၏ပုံ အစစ်မှန်ကို မတင်ထားရန်၊\n"   
                 f"၂။ ဖုန်းနံပါတ်ကိုဖျောက်ထားရန်၊\n"
                 f"၃။ မိမိ၏တည်နေရာကို public chat(သို့)DM တွင်ထုတ်ဖော်မပြောမိစေရန်၊\n"
-                f"၄။သတင်းပေးပို့မည် ဆိုပါက adminထံသို့ DMမှဆက်သွယ်သတင်းပေးပို့ရန်တို့ဖြစ်ပါသည်။ \n"
+                f"၄။သတင်းပေးပို့မည် ဆိုပါက adminထံသို့ DMမှဆက်သွယ်သတင်းပေးပို့ရန်တို့ဖြစ်ပါသည်။"
+            )
+            await update.message.reply_text(welcome_part2)
+            await asyncio.sleep(1)
+
+            # အပိုင်း ၃
+            welcome_part3 = (
                 f"မိဘပြည်သူများ အနေဖြင့်-\n"
                 f"စကစ၏ယုတ်မာရက်စက်မှုများ\n"
                 f"ဧည့်စားရင်းစစ်သတင်းများ\n"
                 f"စကစ၏လှုပ်ရှားမှု သတင်းများ\n"
                 f"စစ်မှုထမ်းရန်ဖမ်းဆီးခေါ် ဆောင်သော သတင်းများကို \n"               
-                f"  adminထံသို့သတင်းပေးရန် /admin ကိုနှိပ်ပါ။"
+                f"adminထံသို့သတင်းပေးရန် /admin ကိုနှိပ်ပါ။"
             )
-            await update.message.reply_text(welcome_message)
+            await update.message.reply_text(welcome_part3)
 
     except Exception as e:
         logger.error(f"Welcome error: {e}")
