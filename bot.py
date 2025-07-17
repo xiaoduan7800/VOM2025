@@ -13,27 +13,28 @@ from telegram.ext import (
     filters
 )
 
-# Load environment variables
+# Load .env
 load_dotenv()
 
-# Logging setup
+# Logging config
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Helper functions
+# Helper: Check if user is admin
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     user = update.effective_user
     chat = update.effective_chat
     admins = await context.bot.get_chat_administrators(chat.id)
     return any(admin.user.id == user.id for admin in admins)
 
-# Command handlers
+# /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Hello! I'm your group help bot.")
 
+# Welcome new members
 async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if not update.message or not update.message.new_chat_members:
@@ -47,7 +48,6 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
             username = f"@{member.username}" if member.username else "(no username)"
             user_id = member.id
 
-            # Split welcome message into two parts
             welcome_part1 = (
                 f"မင်္ဂလာပါ {name}\n"
                 f"Username - {username} ({user_id})\n\n"
@@ -77,6 +77,7 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Welcome error: {e}")
 
+# Filter unwanted links
 async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -95,7 +96,7 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.delete()
             warning_msg = await context.bot.send_message(
                 chat_id=update.message.chat.id,
-                text=(f"⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။"),
+                text=f"⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
                 parse_mode=ParseMode.HTML
             )
             await asyncio.sleep(10)
@@ -103,6 +104,7 @@ async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             logger.error(f"Error in filter_links: {e}")
 
+# /rules command
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rules_text = """
 📜 <b>အုပ်စုစည်းမျဉ်းများ</b>:
@@ -116,22 +118,21 @@ async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     await update.message.reply_text(rules_text, parse_mode=ParseMode.HTML)
 
+# /admin command
 async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        predefined_admins = [
-            "@Oakgyi1116",
-            "@bebeex124",
-            "@GuGuLay1234"
-        ]
-        message = (
-            "🔷 <b>Admin များ:</b>\n\n" +
-            "\n".join([f"• {admin}" for admin in predefined_admins]) +
-            "\n\nသတင်းပေးချင်ပါက မည်သူမဆို admin ၏ DM သို့ ဆက်သွယ်ပါ။"
-        )
-        await update.message.reply_text(message, parse_mode=ParseMode.HTML)
-    except Exception as e:
-        logger.error(f"Admin list error: {e}")
+    admins = [
+        "@Oakgyi1116",
+        "@bebeex124",
+        "@GuGuLay1234"
+    ]
+    message = (
+        "🔷 <b>Admin များ:</b>\n\n" +
+        "\n".join([f"• {a}" for a in admins]) +
+        "\n\nသတင်းပေးချင်ပါက မည်သူမဆို admin ၏ DM သို့ ဆက်သွယ်ပါ။"
+    )
+    await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
+# /ban <user_id> command
 async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_admin(update, context):
         await update.message.reply_text("❌ သင့်အား admin ဖြစ်ရပါမည်။")
@@ -151,69 +152,51 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Ban error: {e}")
         await update.message.reply_text("❌ Ban လုပ်ရာတွင် အမှားတစ်ခု ဖြစ်နေပါတယ်။")
 
+# /report command (reply to message)
 async def report_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        reported_msg = update.message.reply_to_message
-        if not reported_msg:
+        if not update.message.reply_to_message:
             await update.message.reply_text("⚠️ ကျေးဇူးပြု၍ ပြသလိုသော message ကို reply ပြန်ပြီး /report ကိုသုံးပါ။")
             return
 
         reporter = update.effective_user
-        reported_user = reported_msg.from_user
+        reported = update.message.reply_to_message.from_user
+        message = update.message.reply_to_message.text or "Media/Sticker"
 
         report_text = (
             f"⚠️ Report\n"
             f"👤 Reported by: {reporter.mention_html()} ({reporter.id})\n"
-            f"🧾 Target: {reported_user.mention_html()} ({reported_user.id})\n\n"
-            f"📄 Message:\n{reported_msg.text or 'Media'}"
+            f"🧾 Target: {reported.mention_html()} ({reported.id})\n\n"
+            f"📄 Message:\n{message}"
         )
 
         admins = await context.bot.get_chat_administrators(update.effective_chat.id)
         for admin in admins:
             try:
-                await context.bot.send_message(
-                    chat_id=admin.user.id,
-                    text=report_text,
-                    parse_mode=ParseMode.HTML
-                )
+                await context.bot.send_message(chat_id=admin.user.id, text=report_text, parse_mode=ParseMode.HTML)
             except Exception as e:
-                logger.error(f"Report sending error: {e}")
-
+                logger.error(f"Send to admin failed: {e}")
     except Exception as e:
         logger.error(f"Report error: {e}")
 
-# Main application
-async def main():
+# ✅ Main function - not async!
+def main():
     TOKEN = os.getenv("BOT_TOKEN")
     if not TOKEN:
-        raise ValueError("BOT_TOKEN environment variable not set")
+        raise Exception("Missing BOT_TOKEN in environment variables")
 
-    application = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(TOKEN).build()
 
-    # Add handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("rules", rules))
-    application.add_handler(CommandHandler("admin", admin_list))
-    application.add_handler(CommandHandler("ban", ban_user))
-    application.add_handler(CommandHandler("report", report_user))
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), filter_links))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("rules", rules))
+    app.add_handler(CommandHandler("admin", admin_list))
+    app.add_handler(CommandHandler("ban", ban_user))
+    app.add_handler(CommandHandler("report", report_user))
+    app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), filter_links))
 
     logger.info("🤖 Bot is starting...")
-    await application.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    import asyncio
-
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            logger.info("⏳ Detected existing event loop. Starting bot with create_task().")
-            loop.create_task(main())
-        else:
-            logger.info("🚀 Starting bot with new event loop.")
-            loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        logger.info("🛑 Bot stopped by user")
-    except Exception as e:
-        logger.error(f"Fatal error: {e}")
+    main()
