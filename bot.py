@@ -2,7 +2,7 @@ import os
 import re
 import logging
 from dotenv import load_dotenv
-from telegram import Update
+from telegram import Update, ChatPermissions
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -11,6 +11,7 @@ from telegram.ext import (
     ContextTypes,
     filters
 )
+from datetime import timedelta
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +22,9 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# Warning Counter Store
+user_warnings = {}
 
 # Helper functions
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -50,20 +54,20 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"မင်္ဂလာပါ {name}\n"
                 f"Username - {username} ({user_id})\n\n"
                 f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
-                f"Voice Of Mandalay (VOM) တော်လှန်ရေးသတင်း Group မှကြိုဆိုပါတယ်။\n\n"
-                f"ကျွန်တော်ကတော့ စကစကိုတော်လှန်နေတဲ့တော်လှန်‌ရေးမှာပါဝင်နေတဲ့ တော်လှန်စက်ရုပ်ဖြစ်ပါတယ်။\n"
-                f"ကျွန်တော်တို့ Voice Of Mandalay (VOM) Group အတွင်းဝင်ရောက်လာမည်ဆိုပါက "
+                f"ကျွန်တော်ကတော့ စကစကိုတော်လှန်နေတဲ့တော်လှန်‌ရေးမှာပါဝင်နေတဲ့ တော်လှန်စက်ရုပ် တစ်ကောင်ဖြစ်ပါတယ်။\n"
+                f"ကျွန်တော်တို Voice Of Mandalay (VOM)တော်လှန်ရေးသတင်း Group အတွင်းဝင်ထားမည်ဆိုပါက "
                 f"မိဘပြည်သူများ၏ လုံခြုံရေးအတွက် အောက်ပါအချက်များကို သတိပြုရန် လိုအပ်ပါသည်။\n\n"
                 f"၁။ Profile တွင် မိမိ၏ပုံအစစ်မှန်ကို မတင်ထားရန်။\n"
                 f"၂။ ဖုန်းနံပါတ်ကို ဖျောက်ထားရန်။\n"
-                f"၃။ မိမိ၏တည်နေရာကို public chat သို့မဟုတ် DM တွင် မဖော်ပြရန်။"
-                f"၄။ သတင်းပေးပို့လိုပါက admin ထံသို့ DM မှတစ်ဆင့် ဆက်သွယ်သတင်းပေးရန်။\n\n"
+                f"၃။ မိမိ၏တည်နေရာကို public chat သိုမဟုတ် DM တွင် မဖော်ပြရန်။"
+                f"၄။ DMတွင်ဖြစ်စေ၊Groupထဲတွင်ဖြစ်စေ မိမိမသိသော Link များကို မနှိပ်မိရန်သတိထားပါ။"
+                f"၄။ သတင်းပေးပိုလိုပါက admin များထံသို DM မှတစ်ဆင့် ဆက်သွယ်သတင်းပေးရန်။\n\n"
                 f"မိဘပြည်သူများအနေဖြင့် -\n"
                 f"• စကစ၏ ယုတ်မာရက်စက်မှုများ\n"
                 f"• ဧည့်စားရင်းစစ်သတင်းများ\n"
                 f"• စကစ၏ လှုပ်ရှားမှုသတင်းများ\n"
                 f"• စစ်မှုထမ်းရန်ဖမ်းဆီးခေါ်ဆောင်မှုများ\n"
-                f"တို့ကို သတင်းပေးချင်ပါက ⤵️\n"
+                f"တိုကို သတင်းပေးချင်ပါက ⤵️\n"
                 f"/admin ကိုနှိပ်ပြီး သတင်းပေးပါ။"
             )
 
@@ -73,36 +77,52 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Welcome error: {e}")
 
+# ✅ Link Filter with 3-strike rule
 async def filter_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
+    user_id = update.message.from_user.id
+    username = update.message.from_user.full_name
     text = update.message.text.lower()
     blocked_patterns = [r'http[s]?://', r'www\.', r'\.com', r't\.me/', r'@\w+']
 
     if any(re.search(pattern, text) for pattern in blocked_patterns):
         try:
             await update.message.delete()
-            warning_msg = await context.bot.send_message(
-                chat_id=update.message.chat.id,
-                text=f"⚠️ {update.message.from_user.mention_html()}, 🚫 Group အတွင်း Link ပေးပို့ခြင်းကိုတားမြစ်ထားသည်။",
-                parse_mode=ParseMode.HTML
-            )
-            await warning_msg.delete(delay=10)
+
+            # Warning count
+            if user_id not in user_warnings:
+                user_warnings[user_id] = 0
+            user_warnings[user_id] += 1
+
+            if user_warnings[user_id] == 1:
+                warning_msg = f"⚠️ {username}, Admin ခွင့်ပြုချက်မရှိပဲ Linkပေးပို့ရန်တားမြစ်ထားသည်။• Warns now: (1/3) ❕"
+            elif user_warnings[user_id] == 2:
+                warning_msg = f"⚠️ {username}, နောက်တစ်ကြိမ် Link ပို့မယ်ဆို mute လုပ်ပါမယ်! (2/3)"
+            else:
+                # 3rd time → mute 48 hours
+                await context.bot.restrict_chat_member(
+                    chat_id=update.effective_chat.id,
+                    user_id=user_id,
+                    permissions=ChatPermissions(can_send_messages=False),
+                    until_date=update.message.date + timedelta(hours=48)
+                )
+                warning_msg = f"🚫 {username} ကို 48 နာရီ mute လုပ်လိုက်ပါပြီ! (3/3)"
+
+            sent_msg = await update.message.reply_text(warning_msg)
+            await sent_msg.delete(delay=10)
+
         except Exception as e:
             logger.error(f"Error in filter_links: {e}")
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rules_text = """📜 <b>အုပ်စုစည်းမျဉ်းများ</b>:
 1. လောင်းကစားကြော်ငြာများ၊ refer မပြုလုပ်ပါနဲ့။
-2. တော်လှန်ရေးနှင့်ပတ်သတ်သောအကြောင်းအရာများကို လွတ်လပ်စွာ ဆွေးနွေးနိုင်ပါသည်။
-3. မိဘပြည်သူများကို စိတ်အနှောက်အယှက်ဖြစ်စေသော message များ မပို့ရ။
-4. တော်လှန်ပြည်သူအချင်းချင်း စိတ်ဝမ်းကွဲစေနိုင်သော စကားများ မပြောရ။
-
-<b>မှတ်ချက်</b>:
-အခြားစည်းကမ်းချက်များ လိုအပ်လာပါက admin များမှ ထပ်မံ သတ်မှတ်သွားပါမည်။
+2. Groupအတွင်းသို့ Link မပို့ရ။
+3. တော်လှန်ရေးနှင့်ပတ်သတ်သောအကြောင်းအရာများကို လွတ်လပ်စွာ ဆွေးနွေးနိုင်ပါသည်။
+4. အခြား Group member များကို မညှိုးမရှိုင်းစေပါ။
 """
-
     await update.message.reply_text(rules_text, parse_mode=ParseMode.HTML)
 
 async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -114,21 +134,30 @@ async def admin_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
+# ✅ Ban user by username or ID
 async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_admin(update, context):
         await update.message.reply_text("❌ သင့်အနေနဲ့ admin ဖြစ်ရပါမည်။")
         return
 
-    if not context.args or not context.args[0].isdigit():
-        await update.message.reply_text("အသုံးပြုနည်း: /ban <user_id> [အကြောင်းရင်း]")
+    if not context.args:
+        await update.message.reply_text("အသုံးပြုနည်း: /ban <username or user_id> [အကြောင်းရင်း]")
         return
 
-    user_id = int(context.args[0])
+    target = context.args[0]
     reason = " ".join(context.args[1:]) if len(context.args) > 1 else "စည်းမျဉ်းချိုးမှု"
 
     try:
+        if target.startswith("@"):
+            # Get user by username
+            chat = update.effective_chat
+            member = await context.bot.get_chat_member(chat.id, target)
+            user_id = member.user.id
+        else:
+            user_id = int(target)
+
         await context.bot.ban_chat_member(update.effective_chat.id, user_id)
-        await update.message.reply_text(f"🚫 User {user_id} ကို Ban လုပ်ပြီးပါပြီ။\nအကြောင်းရင်း: {reason}")
+        await update.message.reply_text(f"🚫 User {target} ကို Ban လုပ်ပြီးပါပြီ။\nအကြောင်းရင်း: {reason}")
     except Exception as e:
         logger.error(f"Ban error: {e}")
         await update.message.reply_text("❌ Ban လုပ်ရာတွင် အမှားတစ်ခုဖြစ်နေသည်။")
@@ -158,6 +187,21 @@ async def report_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logger.error(f"Report send error: {e}")
     except Exception as e:
         logger.error(f"Report error: {e}")
+
+# ✅ Block forwarded messages
+async def block_forward(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if update.message and update.message.forward_origin:
+            await update.message.delete()
+            warning_msg = await context.bot.send_message(
+                chat_id=update.message.chat.id,
+                text=f"⚠️ {update.message.from_user.mention_html()}, Group ထဲကို Forward message မပို့နိုင်ပါ။",
+                parse_mode=ParseMode.HTML
+            )
+            await warning_msg.delete(delay=10)
+    except Exception as e:
+        logger.error(f"Forward block error: {e}")
+
 
 def main():
     TOKEN = os.getenv("BOT_TOKEN")
